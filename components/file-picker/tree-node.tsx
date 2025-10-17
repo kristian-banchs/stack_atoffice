@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/auth-hooks'
 import { useConnectionResources } from '@/lib/hooks/connection-hooks'
@@ -105,9 +105,19 @@ export function TreeNode({
   usePrefetchKBResources(auth.token, kbId, childFolders.length > 0 ? childFolders : null)
 
 
-  //--------- auto-select indexed resources when entering edit mode -----------
+  //--------- auto-select indexed resources when entering edit mode (ONE TIME ONLY) -----------
+  const hasAutoSelected = useRef(false)
+
+  // Reset auto-selection flag when exiting edit mode
   useEffect(() => {
-    if (!editMode || !kbData?.data) return
+    if (!editMode) {
+      hasAutoSelected.current = false
+    }
+  }, [editMode])
+
+  useEffect(() => {
+    // Only run auto-selection ONCE per folder when edit mode first activates
+    if (!editMode || !kbData?.data || hasAutoSelected.current) return
 
     // Get resource IDs that are indexed in THIS folder from the KB query
     const localIndexedIds = new Set(
@@ -123,7 +133,10 @@ export function TreeNode({
         .map(item => item.resource_id)
     )
 
-    if (localIndexedIds.size === 0) return
+    if (localIndexedIds.size === 0) {
+      hasAutoSelected.current = true
+      return
+    }
 
     // Get all file paths in this folder (for sibling checking)
     const allFilePaths = merged
@@ -144,6 +157,9 @@ export function TreeNode({
         }
       }
     })
+
+    // Mark as initialized - never run again for this folder instance
+    hasAutoSelected.current = true
   }, [editMode, kbData, merged, path])
 
   //--------- cleanup pending paths when real status arrives -----------
@@ -242,6 +258,11 @@ export function TreeNode({
                 onClick={() => onToggle(childPath)}
                 className="flex items-center gap-2 py-1 px-2 hover:bg-gray-100 rounded w-full text-left"
               >
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
                 {editMode ? (
                   <input
                     type="checkbox"
@@ -256,11 +277,7 @@ export function TreeNode({
                 ) : (
                   <div className="w-3.5" />
                 )}
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
+                
                 <span>📁</span>
                 <span className="text-sm">{item.inode_path.path}</span>
               </button>
