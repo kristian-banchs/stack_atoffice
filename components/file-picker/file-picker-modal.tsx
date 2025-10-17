@@ -73,7 +73,12 @@ export function FilePickerModal() {
       return
     }
 
+    // Capture paths BEFORE exiting edit mode
     const paths = Array.from(editMode.selectedPaths)
+
+    // Exit edit mode IMMEDIATELY for instant visual feedback
+    // (checkboxes disappear, UI returns to view mode)
+    editMode.exitEditMode()
 
     // Set rebuilding flag to prevent cleanup of old KB status
     setIsRebuilding(true)
@@ -97,8 +102,6 @@ export function FilePickerModal() {
       setIsRebuilding(false) // Reset on error
       throw error
     }
-
-    editMode.exitEditMode()
   }
 
   const toggleFolder = (path: string) => {

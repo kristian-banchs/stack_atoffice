@@ -182,7 +182,7 @@ export function useRebuildKB(
       // Invalidate kb-resources to trigger refetch with new KB
       queryClient.invalidateQueries({ queryKey: ['kb-resources'] })
 
-      toast.success('Knowledge Base rebuilt successfully')
+      
     },
     onError: (error) => {
       toast.error('Failed to rebuild KB: ' + (error as Error).message)
