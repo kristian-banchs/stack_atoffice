@@ -40,7 +40,6 @@ export function useAuth() {
         router.push('/dashboard')
       },
       onError: (error: Error) => {
-        console.error('Login failed:', error)
         toast.error('Login failed. Please check your credentials.')
       }
     })

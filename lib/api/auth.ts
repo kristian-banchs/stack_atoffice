@@ -14,8 +14,6 @@ export async function login(email: string, password: string): Promise<string> {
       gotrue_meta_security: {}
     }
 
-    console.log('Login request:', { email, url: `${AUTH_URL}/auth/v1/token?grant_type=password` })
-
     const response = await fetch(`${AUTH_URL}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: {
@@ -25,11 +23,8 @@ export async function login(email: string, password: string): Promise<string> {
       body: JSON.stringify(requestBody)
     })
 
-    console.log('Login response status:', response.status)
-
     if (!response.ok) {
       const error = await response.text()
-      console.error('Login error:', error)
       throw new Error(`Login failed: ${error}`)
     }
 

@@ -148,7 +148,6 @@ export function TreeNode({
       if (localIndexedIds.has(item.resource_id)) {
         const itemPath = `/${item.inode_path.path}`
         if (!editMode.isSelected(itemPath)) {
-          console.log(`[TreeNode ${path}] Auto-selecting indexed item:`, itemPath)
           if (item.inode_type === 'directory') {
             editMode.toggleFolder(itemPath)
           } else {
@@ -165,13 +164,8 @@ export function TreeNode({
   //--------- cleanup pending paths when real status arrives -----------
   useEffect(() => {
     if (!onPendingCleanup || pendingPaths.size === 0 || isRebuilding) {
-      if (pendingPaths.size > 0) {
-        console.log(`[TreeNode ${path}] Cleanup SKIPPED - isRebuilding:`, isRebuilding, 'pendingPaths:', pendingPaths)
-      }
       return
     }
-
-    console.log(`[TreeNode ${path}] Cleanup RUNNING - checking ${merged.length} items`)
 
     // Check each merged resource (files only)
     merged.forEach(item => {
@@ -198,25 +192,20 @@ export function TreeNode({
 
       const isPending = isFilePending || isAncestorPending
 
-      // Cleanup when file has FINAL indexing status (fully indexed)
-      // The isRebuilding delay ensures we only see NEW KB data, not old cached data
-      // Files transition: not_indexed → error (transient KB setup) → pending → being_indexed → indexed
-      // We must wait for 'parsed' or 'indexed' - intermediate states cause flicker when transitioning from optimistic to real
+      
+
+      //cleanup if the file has a real indexing and is pending or its an ancestor folder that is pending
       const hasRealIndexingStatus =
         item.indexStatus === 'parsed' || item.indexStatus === 'indexed'
 
       if (isPending) {
-        console.log(`[TreeNode ${path}] File ${itemPath} - status: ${item.indexStatus}, hasRealIndexingStatus: ${hasRealIndexingStatus}, isPending: ${isPending}`)
-
         if (hasRealIndexingStatus) {
-          console.log(`[TreeNode ${path}] CLEANUP: Removing ${itemPath} from pendingPaths`)
           // If ancestor folder is pending, remove the folder path (not the file path)
           if (isAncestorPending && !isFilePending) {
             const parts = itemPath.split('/').filter(Boolean)
             for (let i = parts.length - 1; i > 0; i--) {
               const ancestorPath = '/' + parts.slice(0, i).join('/')
               if (pendingPaths.has(ancestorPath)) {
-                console.log(`[TreeNode ${path}] CLEANUP: Removing ancestor folder ${ancestorPath} from pendingPaths`)
                 onPendingCleanup(ancestorPath)
                 break
               }

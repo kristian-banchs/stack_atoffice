@@ -12,7 +12,6 @@ export function useEditMode() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set())
 
-  console.log("selectedPaths: ", selectedPaths);
   /**
    * Check if a path is selected
    * Returns true if path or any ancestor is selected

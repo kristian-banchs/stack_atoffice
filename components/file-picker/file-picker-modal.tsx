@@ -24,12 +24,10 @@ export function FilePickerModal() {
   const removePendingPath = useMemo(() => {
     return (path: string) => {
       if (isRebuilding) {
-        console.log("removePendingPath BLOCKED (rebuilding):", path)
         return // Don't cleanup during rebuild!
       }
 
       setPendingPaths(prev => {
-        console.log("removePendingPath:", path, "prev:", prev)
         if (!prev.has(path)) return prev
         const next = new Set(prev)
         next.delete(path)
@@ -76,17 +74,14 @@ export function FilePickerModal() {
     }
 
     const paths = Array.from(editMode.selectedPaths)
-    console.log("paths:", paths)
-    console.log('[Save] Starting rebuild with paths:', paths)
 
     // Set rebuilding flag to prevent cleanup of old KB status
     setIsRebuilding(true)
 
     // INSTANT feedback - set ONLY the selected paths as pending (synchronous)
     setPendingPaths(new Set(paths))
-    console.log("set pendingPaths:", pendingPaths)
 
-    
+
     try {
       await rebuildMutation.mutateAsync({
         selectedPaths: paths,
@@ -97,7 +92,6 @@ export function FilePickerModal() {
       // This gives the sync time to start and first status updates to come in
       setTimeout(() => {
         setIsRebuilding(false)
-        console.log('[Save] Rebuild complete, cleanup enabled')
       }, 2000) // 2 second delay after sync triggers
 
     } catch (error) {
