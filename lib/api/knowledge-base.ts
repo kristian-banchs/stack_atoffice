@@ -15,7 +15,7 @@ const BASE_URL = 'https://api.stack-ai.com'
 export async function getKnowledgeBases(
     token: string,
     connectionId: string
-  ): Promise<{ admin: any[] }> {
+  ): Promise<{ admin: KBDetails[] }> {
     const response = await fetch(
       `${BASE_URL}/knowledge_bases?connection_id=${connectionId}`,
       { headers: { Authorization: `Bearer ${token}` } }

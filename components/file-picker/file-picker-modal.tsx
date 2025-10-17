@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '@/lib/hooks/auth-hooks'
 import { useConnection, useConnectionResources } from '@/lib/hooks/connection-hooks'
 import { useKnowledgeBase, useKBResources } from '@/lib/hooks/knowledge-base-hooks'
@@ -52,7 +52,7 @@ export function FilePickerModal() {
     { enabled: !!connection && !!kb }
   )
 
-  const { data: kbResources } = useKBResources(
+  useKBResources(
     auth.token,
     kb?.knowledge_base_id || null,
     '/',
@@ -81,7 +81,6 @@ export function FilePickerModal() {
     // INSTANT feedback - set ONLY the selected paths as pending (synchronous)
     setPendingPaths(new Set(paths))
 
-
     try {
       await rebuildMutation.mutateAsync({
         selectedPaths: paths,
@@ -105,7 +104,11 @@ export function FilePickerModal() {
   const toggleFolder = (path: string) => {
     setExpandedFolders(prev => {
       const next = new Set(prev)
-      next.has(path) ? next.delete(path) : next.add(path)
+      if (next.has(path)) {
+        next.delete(path)
+      } else {
+        next.add(path)
+      }
       return next
     })
   }
@@ -158,20 +161,22 @@ if (connectionsLoading || kbLoading || rootResourcesLoading) {
         onSave={handleSave}
       />
       <div className="flex-1 p-6 overflow-auto">
-        <TreeNode
-          path="/"
-          folderId={null}
-          connectionId={connection.connection_id}
-          kbId={kb.knowledge_base_id}
-          isOpen={true}
-          expandedFolders={expandedFolders}
-          onToggle={toggleFolder}
-          editMode={editMode.isEditMode ? editMode : null}
-          pathToResourceId={pathToResourceId}
-          pendingPaths={pendingPaths}
-          onPendingCleanup={removePendingPath}
-          isRebuilding={isRebuilding}
-        />
+        {connection && kb && (
+          <TreeNode
+            path="/"
+            folderId={null}
+            connectionId={connection.connection_id}
+            kbId={kb.knowledge_base_id}
+            isOpen={true}
+            expandedFolders={expandedFolders}
+            onToggle={toggleFolder}
+            editMode={editMode.isEditMode ? editMode : null}
+            pathToResourceId={pathToResourceId}
+            pendingPaths={pendingPaths}
+            onPendingCleanup={removePendingPath}
+            isRebuilding={isRebuilding}
+          />
+        )}
       </div>
     </div>
   )

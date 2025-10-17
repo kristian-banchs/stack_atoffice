@@ -2,6 +2,13 @@
 
 import type { ConnectionResourcesResponse } from '../types'
 
+interface Connection {
+  connection_id: string
+  name: string
+  connection_provider: string
+  created_at: string
+  updated_at: string
+}
 
 const BASE_URL = 'https://api.stack-ai.com'
 
@@ -13,7 +20,7 @@ const BASE_URL = 'https://api.stack-ai.com'
 
 
 // --------- google drive connections -----------
-export async function getConnections(token: string): Promise<any[]> {
+export async function getConnections(token: string): Promise<Connection[]> {
     const response = await fetch(
       `${BASE_URL}/connections?connection_provider=gdrive&limit=10`,
       { headers: { Authorization: `Bearer ${token}` } }

@@ -74,7 +74,7 @@ export function TreeNode({
 
     return driveData.data.map(file => ({
       ...file,
-      indexStatus: kbMap.get(file.resource_id) || 'not_indexed'
+      indexStatus: (kbMap.get(file.resource_id) || 'not_indexed') as IndexStatus
     }))
   }, [driveData, kbData])
 
@@ -88,7 +88,7 @@ export function TreeNode({
         pathToResourceId.set(itemPath, item.resource_id)
       })
     }
-  }, [merged, path, pathToResourceId])
+  }, [merged, pathToResourceId])
 
 
 

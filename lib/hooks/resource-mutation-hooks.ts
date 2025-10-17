@@ -78,14 +78,15 @@ export function useDeleteKBFile(token: string | null, kbId: string | null) {
       // Snapshot previous values for rollback
       const previousData = queryClient.getQueriesData({ queryKey: ['kb-resources', kbId] })
 
-      // Optimistically remove the file from all kb-resources queries so that it appears null and not indexed 
+      // Optimistically remove the file from all kb-resources queries so that it appears null and not indexed
       queryClient.setQueriesData(
         { queryKey: ['kb-resources', kbId] },
-        (old: any) => {
-          if (!old?.data) return old
+        (old: unknown) => {
+          if (!old || typeof old !== 'object' || !('data' in old)) return old
+          const oldData = old as { data: Array<{ resource_path?: string; inode_path?: { path?: string } }> }
           return {
             ...old,
-            data: old.data.filter((item: any) => {
+            data: oldData.data.filter((item) => {
               const itemPath = item.resource_path || `/${item.inode_path?.path || ''}`
               return itemPath !== filePath
             })

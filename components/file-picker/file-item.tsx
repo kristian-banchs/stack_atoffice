@@ -4,9 +4,10 @@ import { Trash2 } from 'lucide-react'
 import { useDeleteKBFile } from '@/lib/hooks/resource-mutation-hooks'
 import { useEditMode } from '@/lib/hooks/edit-mode-hooks'
 import { StatusBadge } from './status-badge'
+import { MergedResource } from '@/lib/types'
 
 interface FileItemProps {
-  file: any
+  file: MergedResource
   status: 'not_indexed' | 'pending' | 'being_indexed' | 'parsed' | 'indexed' | 'error'
   filePath: string
   parentPath: string

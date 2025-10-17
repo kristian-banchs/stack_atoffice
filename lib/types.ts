@@ -37,7 +37,7 @@ export interface KBDetails {
   created_at: string
   updated_at: string
   connection_source_ids: string[]
-  website_sources: any[]
+  website_sources: string[]
   connection_provider_type: string
   is_empty: boolean
   total_size: number
@@ -66,8 +66,8 @@ export interface KBDetails {
   cron_job_id: string | null
   org_id: string
   org_level_role: string | null
-  user_metadata_schema: any | null
-  dataloader_metadata_schema: any | null
+  user_metadata_schema: Record<string, unknown> | null
+  dataloader_metadata_schema: Record<string, unknown> | null
 }
 
 export interface CreateKBRequest {
@@ -113,5 +113,5 @@ export interface AuthResponse {
   token_type?: string
   expires_in?: number
   refresh_token?: string
-  user?: any
+  user?: Record<string, unknown>
 }

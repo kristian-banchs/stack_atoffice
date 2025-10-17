@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null)
   const { data: connection, isLoading: connectionLoading } = useConnection(auth.token)
-  const { data: kb, isLoading: kbLoading } = useKnowledgeBase(auth.token, connection?.connection_id || null)
+  const { isLoading: kbLoading } = useKnowledgeBase(auth.token, connection?.connection_id || null)
 
 
 
