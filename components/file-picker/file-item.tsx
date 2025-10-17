@@ -1,7 +1,6 @@
 'use client'
 
 import { Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useDeleteKBFile } from '@/lib/hooks/resource-mutation-hooks'
 import { useEditMode } from '@/lib/hooks/edit-mode-hooks'
 import { StatusBadge } from './status-badge'
@@ -46,18 +45,15 @@ export function FileItem({
   }
 
   // CRITICAL: Override status for optimistic UI (pending paths)
-  // If pendingPaths is active (size > 0), it represents the ONLY files/folders that should be indexed
-  // - Files IN pendingPaths OR with ancestor in pendingPaths: show 'pending' (optimistic, waiting for server)
-  // - Files NOT in pendingPaths: show 'not_indexed' (deselected, don't wait for server)
-  // If pendingPaths is empty: use server status normally
+  // When pendingPaths is active (size > 0), we're in rebuild mode:
+  // - Files IN pendingPaths: show 'pending' (will be indexed)
+  // - Files NOT IN pendingPaths: show 'not_indexed' (will NOT be indexed - de-indexing)
+  // When pendingPaths is empty: trust server status (normal mode)
+  // Note: Flicker is prevented by TreeNode cleanup logic (only cleans up at final states)
   const effectiveStatus =
     pendingPaths.size > 0
       ? (isPendingFile(filePath) ? 'pending' : 'not_indexed')
       : status
-
-      const isPending = pendingPaths.has(filePath)
-
-   console.log("effectiveStatus: ", effectiveStatus, "filePath: ", filePath, "pendingPaths: ", pendingPaths, "isPending: ", isPending, "size: ", pendingPaths.size);
       
   return (
     <div className="flex items-center gap-2 py-1 px-2 ml-6">

@@ -198,13 +198,12 @@ export function TreeNode({
 
       const isPending = isFilePending || isAncestorPending
 
-      // Cleanup when file has ACTUAL indexing status (not 'not_indexed' or transient 'error')
+      // Cleanup when file has FINAL indexing status (fully indexed)
       // The isRebuilding delay ensures we only see NEW KB data, not old cached data
       // Files transition: not_indexed → error (transient KB setup) → pending → being_indexed → indexed
-      // We must wait for 'pending' or later - 'error' is too early (causes flicker)
+      // We must wait for 'parsed' or 'indexed' - intermediate states cause flicker when transitioning from optimistic to real
       const hasRealIndexingStatus =
-        item.indexStatus !== 'not_indexed' &&
-        item.indexStatus !== 'error' // 'error' is transient during KB rebuild - wait for actual indexing status
+        item.indexStatus === 'parsed' || item.indexStatus === 'indexed'
 
       if (isPending) {
         console.log(`[TreeNode ${path}] File ${itemPath} - status: ${item.indexStatus}, hasRealIndexingStatus: ${hasRealIndexingStatus}, isPending: ${isPending}`)
