@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
 import * as api from '../api/knowledge-base'
 import { KBResourcesResponse } from "../types"
 
@@ -90,4 +91,31 @@ export function useKnowledgeBase(
       retry: 2
     })
   }
-  
+
+  /**
+   * Prefetch KB resources for child folders
+   * Should be called alongside usePrefetchChildFolders to eliminate badge lag
+   */
+  export function usePrefetchKBResources(
+    token: string | null,
+    kbId: string | null,
+    childFolders: Array<{ resource_id: string; inode_path: { path: string } }> | null
+  ) {
+    const queryClient = useQueryClient()
+
+    useEffect(() => {
+      if (!token || !kbId || !childFolders || childFolders.length === 0) return
+
+      // Prefetch KB resources for all child folders in parallel
+      Promise.all(
+        childFolders.map(folder => {
+          const childPath = `/${folder.inode_path.path}`
+          return queryClient.prefetchQuery({
+            queryKey: ['kb-resources', kbId, childPath],
+            queryFn: () => api.getKBResources(token, kbId, childPath),
+            staleTime: 30 * 1000 // 30 seconds
+          })
+        })
+      )
+    }, [token, kbId, childFolders, queryClient])
+  }

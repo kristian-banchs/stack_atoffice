@@ -5,7 +5,7 @@ import { ChevronRight, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/lib/hooks/auth-hooks'
 import { useConnectionResources } from '@/lib/hooks/connection-hooks'
 import { usePrefetchChildFolders } from '@/lib/hooks/connection-hooks'
-import { useKBResources } from '@/lib/hooks/knowledge-base-hooks'
+import { useKBResources, usePrefetchKBResources } from '@/lib/hooks/knowledge-base-hooks'
 import { useEditMode } from '@/lib/hooks/edit-mode-hooks'
 import { FileItem } from './file-item'
 import { TreeNodeSkeleton } from '../skeleton/tree-node-skeleton'
@@ -99,7 +99,10 @@ export function TreeNode({
     merged.filter(item => item.inode_type === 'directory'),
     [merged]
   )
+
+  // Prefetch BOTH connection resources AND KB resources to eliminate badge lag
   usePrefetchChildFolders(auth.token, connectionId, childFolders.length > 0 ? childFolders : null)
+  usePrefetchKBResources(auth.token, kbId, childFolders.length > 0 ? childFolders : null)
 
 
   //--------- auto-select indexed resources when entering edit mode -----------
@@ -179,16 +182,18 @@ export function TreeNode({
 
       const isPending = isFilePending || isAncestorPending
 
-      // Cleanup when file has ANY status from the server (not 'not_indexed')
+      // Cleanup when file has ACTUAL indexing status (not 'not_indexed' or transient 'error')
       // The isRebuilding delay ensures we only see NEW KB data, not old cached data
-      // Files transition: not_indexed → error → pending → being_indexed → indexed
-      // Once we see any real status, the new KB is processing this file
-      const hasRealStatus = item.indexStatus !== 'not_indexed'
+      // Files transition: not_indexed → error (transient KB setup) → pending → being_indexed → indexed
+      // We must wait for 'pending' or later - 'error' is too early (causes flicker)
+      const hasRealIndexingStatus =
+        item.indexStatus !== 'not_indexed' &&
+        item.indexStatus !== 'error' // 'error' is transient during KB rebuild - wait for actual indexing status
 
       if (isPending) {
-        console.log(`[TreeNode ${path}] File ${itemPath} - status: ${item.indexStatus}, hasRealStatus: ${hasRealStatus}, isPending: ${isPending}`)
+        console.log(`[TreeNode ${path}] File ${itemPath} - status: ${item.indexStatus}, hasRealIndexingStatus: ${hasRealIndexingStatus}, isPending: ${isPending}`)
 
-        if (hasRealStatus) {
+        if (hasRealIndexingStatus) {
           console.log(`[TreeNode ${path}] CLEANUP: Removing ${itemPath} from pendingPaths`)
           // If ancestor folder is pending, remove the folder path (not the file path)
           if (isAncestorPending && !isFilePending) {
