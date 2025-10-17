@@ -1,0 +1,121 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
+import * as api from '../api/knowledge-base'
+import { KBResourcesResponse } from "../types"
+
+
+// ============================================================================
+// KNOWLEDGE BASE HOOKS
+// ============================================================================
+
+
+
+//-------- 
+export function useKnowledgeBase(
+    token: string | null,
+    connectionId: string | null
+  ) {
+    return useQuery({
+      queryKey: ['knowledge-base', connectionId],
+      queryFn: async () => {
+        // Try to get existing KB for this connection
+        const response = await api.getKnowledgeBases(token!, connectionId!)
+
+        // API returns { admin: [...kbs] } structure
+        const kbs = response?.admin || []
+
+        if (kbs.length > 0) {
+          return kbs[0] // Return existing KB
+        }
+        // No KB exists - create one
+        const newKB = await api.createKB(token!, {
+          connection_id: connectionId!,
+          connection_source_ids: [], // Start empty
+          name: 'Google Drive Knowledge Base',
+          description: 'Indexed files from Google Drive',
+          indexing_params: {
+            ocr: false,
+            unstructured: true,
+            embedding_params: {
+              embedding_model: 'text-embedding-ada-002',
+              api_key: null
+            },
+            chunker_params: {
+              chunk_size: 1500,
+              chunk_overlap: 500,
+              chunker: 'sentence'
+            }
+          },
+          org_level_role: null,
+          cron_job_id: null
+        })
+        return newKB
+      },
+      enabled: !!token && !!connectionId,
+      staleTime: Infinity, // KB rarely changes
+      retry: 1
+    })
+  }
+  
+  /**
+   * Fetch indexed resources from Knowledge Base
+   *
+   * @param token - Auth token
+   * @param kbId - Knowledge Base ID
+   * @param path - Path to list (e.g., "/" or "/clients/project-alpha")
+   * @param options - Query options
+   */
+  export function useKBResources(
+    token: string | null,
+    kbId: string | null,
+    path: string,
+    options?: { enabled?: boolean }
+  ) {
+    return useQuery<KBResourcesResponse>({
+      queryKey: ['kb-resources', kbId, path],
+      queryFn: () => api.getKBResources(token!, kbId!, path),
+      enabled: !!token && !!kbId && (options?.enabled ?? true),
+      staleTime: 3000, // 3 seconds (for polling)
+      refetchInterval: (query) => {
+        // Only poll if FILES (not directories) are pending/being_indexed/error
+        // Directories don't have status - they're just virtual containers
+        // 'error' is included because it's a transient state during KB rebuild (before indexing starts)
+        if (!query.state.data?.data) return false
+
+        const hasPendingFiles = query.state.data.data.some(
+          (r) => r.inode_type === 'file' && (r.status === 'pending' || r.status === 'being_indexed' || r.status === 'error')
+        )
+
+        return hasPendingFiles ? 3000 : false
+      },
+      retry: 2
+    })
+  }
+
+  /**
+   * Prefetch KB resources for child folders
+   * Should be called alongside usePrefetchChildFolders to eliminate badge lag
+   */
+  export function usePrefetchKBResources(
+    token: string | null,
+    kbId: string | null,
+    childFolders: Array<{ resource_id: string; inode_path: { path: string } }> | null
+  ) {
+    const queryClient = useQueryClient()
+
+    useEffect(() => {
+      if (!token || !kbId || !childFolders || childFolders.length === 0) return
+
+      // Prefetch KB resources for all child folders in parallel
+      Promise.all(
+        childFolders.map(folder => {
+          const childPath = `/${folder.inode_path.path}`
+          return queryClient.prefetchQuery({
+            queryKey: ['kb-resources', kbId, childPath],
+            queryFn: () => api.getKBResources(token, kbId, childPath),
+            staleTime: 30 * 1000 // 30 seconds
+          })
+        })
+      )
+    }, [token, kbId, childFolders, queryClient])
+  }
