@@ -16,25 +16,12 @@ export function FilePickerSkeleton() {
         </div>
       </div>
 
-      {/* File tree */}
+      {/* File tree - solid row skeletons */}
       <div className="flex-1 overflow-auto p-6">
-        <div className="space-y-2">
-          {/* Folder items */}
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="space-y-2">
-              <div className="flex items-center gap-2 py-1">
-                <Skeleton className="h-4 w-4" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-              {/* File items under folder */}
-              {[1, 2].map((j) => (
-                <div key={j} className="flex items-center gap-2 py-1 ml-6">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-64" />
-                  <Skeleton className="h-6 w-6 rounded-full ml-auto" />
-                </div>
-              ))}
-            </div>
+        <div className="space-y-1">
+          {/* Solid rows matching actual file/folder row height */}
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+            <Skeleton key={i} className="h-8 w-full rounded" />
           ))}
         </div>
       </div>

@@ -96,7 +96,7 @@ export interface CreateKBRequest {
 // INTERNAL TYPES
 // ============================================================================
 
-export type IndexStatus = 'not_indexed' | 'pending' | 'being_indexed' | 'parsed' | 'indexed' | 'error'
+export type IndexStatus = 'not_indexed' | 'pending' | 'being_indexed' | 'parsed' | 'indexed' | 'error' | 'deleted'
 
 export interface MergedResource extends ConnectionResource {
   indexStatus: IndexStatus
