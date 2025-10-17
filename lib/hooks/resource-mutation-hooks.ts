@@ -78,17 +78,24 @@ export function useDeleteKBFile(token: string | null, kbId: string | null) {
       // Snapshot previous values for rollback
       const previousData = queryClient.getQueriesData({ queryKey: ['kb-resources', kbId] })
 
+      // Normalize the target path (ensure it starts with /)
+      const normalizedFilePath = filePath.startsWith('/') ? filePath : `/${filePath}`
+
       // Optimistically remove the file from all kb-resources queries so that it appears null and not indexed
       queryClient.setQueriesData(
         { queryKey: ['kb-resources', kbId] },
         (old: unknown) => {
           if (!old || typeof old !== 'object' || !('data' in old)) return old
-          const oldData = old as { data: Array<{ resource_path?: string; inode_path?: { path?: string } }> }
+          const oldData = old as { data: Array<{ resource_path?: string; inode_path?: { path?: string }; resource_id?: string }> }
           return {
             ...old,
             data: oldData.data.filter((item) => {
-              const itemPath = item.resource_path || `/${item.inode_path?.path || ''}`
-              return itemPath !== filePath
+              // Normalize item path to always have leading /
+              const itemPath = item.resource_path
+                ? (item.resource_path.startsWith('/') ? item.resource_path : `/${item.resource_path}`)
+                : `/${item.inode_path?.path || ''}`
+
+              return itemPath !== normalizedFilePath
             })
           }
         }
@@ -97,7 +104,13 @@ export function useDeleteKBFile(token: string | null, kbId: string | null) {
       return { previousData }
     },
     onSuccess: () => {
-      toast.success('File removed from KB')
+      
+
+      // Delay invalidation to allow server-side deletion to propagate
+      // This prevents the file from reappearing due to race condition
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['kb-resources', kbId] })
+      }, 1000)
     },
     onError: (_error, _filePath, context) => {
       // Rollback on error
@@ -107,9 +120,8 @@ export function useDeleteKBFile(token: string | null, kbId: string | null) {
         })
       }
       toast.error('Failed to remove file')
-    },
-    onSettled: () => {
-      // Refetch to ensure server state is correct
+
+      // Still invalidate on error to sync with server state
       queryClient.invalidateQueries({ queryKey: ['kb-resources', kbId] })
     }
   })

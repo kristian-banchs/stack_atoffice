@@ -8,7 +8,7 @@ import { MergedResource } from '@/lib/types'
 
 interface FileItemProps {
   file: MergedResource
-  status: 'not_indexed' | 'pending' | 'being_indexed' | 'parsed' | 'indexed' | 'error'
+  status: 'not_indexed' | 'pending' | 'being_indexed' | 'parsed' | 'indexed' | 'error' | 'deleted'
   filePath: string
   parentPath: string
   allSiblings: string[]
@@ -55,7 +55,7 @@ export function FileItem({
     pendingPaths.size > 0
       ? (isPendingFile(filePath) ? 'pending' : 'not_indexed')
       : status
-      
+  console.log("effectiveStatus: ", effectiveStatus, "filePath: ", filePath);
   return (
     <div className="flex items-center gap-2 py-1 px-2 ml-6">
       {/* Checkbox in edit mode, invisible spacer when not */}
@@ -77,7 +77,8 @@ export function FileItem({
       <StatusBadge status={effectiveStatus} />
 
       {/* Delete button when not in edit mode and file is indexed */}
-       { effectiveStatus !== 'not_indexed' && (
+      
+       { effectiveStatus !== 'not_indexed' && effectiveStatus !== 'deleted' && (
         <button
           onClick={() => deleteMutation.mutate(filePath)}
           disabled={deleteMutation.isPending || editMode?.isEditMode}
