@@ -15,17 +15,17 @@ const BASE_URL = 'https://api.stack-ai.com'
 export async function getKnowledgeBases(
     token: string,
     connectionId: string
-  ): Promise<any[]> {
+  ): Promise<{ admin: any[] }> {
     const response = await fetch(
       `${BASE_URL}/knowledge_bases?connection_id=${connectionId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
-  
+
     if (!response.ok) {
-      // If 404 or error, return empty array (no KB exists yet)
-      return []
+      // If 404 or error, return empty structure
+      return { admin: [] }
     }
-  
+
     return response.json()
   }
   
@@ -141,4 +141,21 @@ export async function getKnowledgeBases(
       throw new Error('Failed to delete KB resource')
     }
   }
-  
+
+  // --------- delete knowledge base -----------
+  export async function deleteKB(
+    token: string,
+    kbId: string
+  ): Promise<void> {
+    const response = await fetch(
+      `${BASE_URL}/knowledge_bases/${kbId}`,
+      {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to delete Knowledge Base')
+    }
+  }

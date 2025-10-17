@@ -7,9 +7,11 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import * as api from '../api/auth';
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // --------- useAuth -----------
 export function useAuth() {
+    const router = useRouter()
     const [token, setToken] = useState<string | null>(() => {
       if (typeof window !== 'undefined') {
         return localStorage.getItem('auth_token')
@@ -35,6 +37,7 @@ export function useAuth() {
         localStorage.setItem('auth_token', accessToken)
         localStorage.setItem('org_id', userOrgId)
         toast.success('Login successful!')
+        router.push('/dashboard')
       },
       onError: (error: Error) => {
         console.error('Login failed:', error)

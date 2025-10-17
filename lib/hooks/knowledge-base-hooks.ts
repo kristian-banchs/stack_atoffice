@@ -18,12 +18,14 @@ export function useKnowledgeBase(
       queryKey: ['knowledge-base', connectionId],
       queryFn: async () => {
         // Try to get existing KB for this connection
-        const kbs = await api.getKnowledgeBases(token!, connectionId!)
-  
-        if (kbs && kbs.length > 0) {
+        const response = await api.getKnowledgeBases(token!, connectionId!)
+
+        // API returns { admin: [...kbs] } structure
+        const kbs = response?.admin || []
+
+        if (kbs.length > 0) {
           return kbs[0] // Return existing KB
         }
-  
         // No KB exists - create one
         const newKB = await api.createKB(token!, {
           connection_id: connectionId!,
@@ -46,7 +48,6 @@ export function useKnowledgeBase(
           org_level_role: null,
           cron_job_id: null
         })
-  
         return newKB
       },
       enabled: !!token && !!connectionId,
@@ -75,13 +76,15 @@ export function useKnowledgeBase(
       enabled: !!token && !!kbId && (options?.enabled ?? true),
       staleTime: 3000, // 3 seconds (for polling)
       refetchInterval: (query) => {
-        // Only poll if FILES (not directories) are pending/being_indexed
+        // Only poll if FILES (not directories) are pending/being_indexed/error
         // Directories don't have status - they're just virtual containers
+        // 'error' is included because it's a transient state during KB rebuild (before indexing starts)
         if (!query.state.data?.data) return false
 
         const hasPendingFiles = query.state.data.data.some(
-          (r) => r.inode_type === 'file' && (r.status === 'pending' || r.status === 'being_indexed')
+          (r) => r.inode_type === 'file' && (r.status === 'pending' || r.status === 'being_indexed' || r.status === 'error')
         )
+
         return hasPendingFiles ? 3000 : false
       },
       retry: 2

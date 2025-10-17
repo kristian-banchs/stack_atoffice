@@ -2,21 +2,31 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { IntegrationsModal } from '@/components/dashboard/integrations-modal'
 import { Sidebar } from '@/components/file-picker/sidebar'
 import { FilePickerModal } from '@/components/file-picker/file-picker-modal'
+import { FilePickerSkeleton } from '@/components/skeleton/file-picker-skeleton'
 import { useAuth } from '@/lib/hooks/auth-hooks'
+import { useConnection } from '@/lib/hooks/connection-hooks'
+import { useKnowledgeBase } from '@/lib/hooks/knowledge-base-hooks'
 
 export default function DashboardPage() {
   const auth = useAuth()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null)
+  const { data: connection, isLoading: connectionLoading } = useConnection(auth.token)
+  const { data: kb, isLoading: kbLoading } = useKnowledgeBase(auth.token, connection?.connection_id || null)
 
+
+
+//--------- useEffect -----------
   useEffect(() => {
     setMounted(true)
   }, [])
 
 
-  //this is being done so that we can wkeep state the same and orevent hydration faliure
+  // Redirect if not authenticated
   useEffect(() => {
     if (mounted && !auth.isAuthenticated) {
       router.push('/')
@@ -32,12 +42,31 @@ export default function DashboardPage() {
     return null
   }
 
+//--------- isLoading -----------
+  const isLoading = connectionLoading || kbLoading
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
-      <main className="flex-1 p-6">
-        <FilePickerModal />
+    <IntegrationsModal>
+      <Sidebar
+        selectedIntegration={selectedIntegration}
+        onSelect={setSelectedIntegration}
+      />
+      <main className="flex-1 overflow-auto">
+        {selectedIntegration === 'google-drive' ? (
+          isLoading ? (
+            <FilePickerSkeleton />
+          ) : (
+            <FilePickerModal />
+          )
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Select an Integration</h2>
+              <p className="text-sm text-gray-500">Choose an integration from the sidebar to get started</p>
+            </div>
+          </div>
+        )}
       </main>
-    </div>
+    </IntegrationsModal>
   )
 }

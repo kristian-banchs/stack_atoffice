@@ -16,7 +16,7 @@ export interface ConnectionResource {
 }
 
 export interface KBResource extends ConnectionResource {
-  status: 'pending' | 'being_indexed' | 'indexed'
+  status: 'pending' | 'being_indexed' | 'parsed' | 'indexed' | 'error'
 }
 
 export interface ConnectionResourcesResponse {
@@ -96,7 +96,7 @@ export interface CreateKBRequest {
 // INTERNAL TYPES
 // ============================================================================
 
-export type IndexStatus = 'not_indexed' | 'pending' | 'being_indexed' | 'parsed'
+export type IndexStatus = 'not_indexed' | 'pending' | 'being_indexed' | 'parsed' | 'indexed' | 'error'
 
 export interface MergedResource extends ConnectionResource {
   indexStatus: IndexStatus
