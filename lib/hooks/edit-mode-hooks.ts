@@ -38,7 +38,7 @@ export function useEditMode() {
       if (isSelected(folderPath)) {
         // Unchecking folder
         if (next.has(parentPath)) {
-          // Parent is selected - explode to siblings
+          // if parent is selected and we are unselecting then all the siblins would stay selected
           next.delete(parentPath)
           allSiblingPaths.forEach(siblingPath => {
             if (siblingPath !== folderPath) {
