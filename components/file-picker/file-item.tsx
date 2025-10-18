@@ -77,14 +77,19 @@ export function FileItem({
       <StatusBadge status={effectiveStatus} />
 
       {/* Delete button when not in edit mode and file is indexed */}
-      
+
        { effectiveStatus !== 'not_indexed' && effectiveStatus !== 'deleted' && (
         <button
           onClick={() => deleteMutation.mutate(filePath)}
-          disabled={deleteMutation.isPending || editMode?.isEditMode}
-          className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50"
+          disabled={
+            deleteMutation.isPending ||
+            editMode?.isEditMode ||
+            effectiveStatus === 'pending' ||
+            effectiveStatus === 'being_indexed'
+          }
+          className="p-1 rounded transition-colors disabled:opacity-30 enabled:hover:bg-gray-100"
         >
-          <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-600" />
+          <Trash2 className="h-4 w-4 text-gray-500 enabled:hover:text-red-600" />
         </button>
       )}
     </div>
