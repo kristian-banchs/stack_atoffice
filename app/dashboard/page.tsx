@@ -20,7 +20,7 @@ export default function DashboardPage() {
 
 
 
-//--------- useEffect -----------
+//--------- hooks -----------
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -42,9 +42,10 @@ export default function DashboardPage() {
     return null
   }
 
-//--------- isLoading -----------
   const isLoading = connectionLoading || kbLoading
+  
 
+//--------------------------- return  ----------------------------
   return (
     <IntegrationsModal>
       <Sidebar

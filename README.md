@@ -1,18 +1,18 @@
 
-So the way that we are currently handeling out data is as follows 
+So the way that we are currently handling our data is as follows
 
 
-The motivation here was to have the UI be snappy and not have the user sit and wait. This was acheived by semi-speculative prefetching by the nodes  in our 'recursive' tree and heavy optimistic updates. The loading phaes are given more support with skeletons 
+The motivation here was to have the UI be snappy and not have the user sit and wait. This was achieved by semi-speculative prefetching by the nodes in our 'recursive' tree and heavy optimistic updates. The loading phases are given more support with skeletons 
 
 **Constraints**
-The key constraints where defined by the API. We were extended the capability to 
-    - fetch resources form a google drive a for a given directory 
-    - fetch data (specifically about indexing) for a specific directory in a knowledge base 
-    - create a knowledge base 
-    - delete a file by doodle drive resource ID form a knowledge base 
+The key constraints were defined by the API. We were extended the capability to
+    - fetch resources from a google drive a for a given directory
+    - fetch data (specifically about indexing) for a specific directory in a knowledge base
+    - create a knowledge base
+    - delete a file by google drive resource ID from a knowledge base
     - ***WE WERE NOT ABLE TO ADD*** by gd id
 
-Given the constraints the most optimal approach would be to take  semi recursive tree approach. the nodes were the folders, the leafs were the files. Prefetching would be used in parrallel at each level (slightly speculative) but significantly increases the user experience and makes the application snappy. Deleting resources from the kb is a simple update, adding new ones requires new KB creation which is covered by optimistic updates.
+Given the constraints the most optimal approach would be to take  semi recursive tree approach. the nodes were the folders, the leafs were the files. Prefetching would be used in parallel at each level (slightly speculative) but significantly increases the user experience and makes the application snappy. Deleting resources from the kb is a simple update, adding new ones requires new KB creation which is covered by optimistic updates.
 
 
 ## Performance Features
@@ -29,25 +29,25 @@ Given the constraints the most optimal approach would be to take  semi recursive
 **Data Structures**
 ~File Picker Modal~
 - const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['/']))
-    Tracks the folders that are expanded accross the tree (set to avoid potential duplicates)
+    Tracks the folders that are expanded across the tree (set to avoid potential duplicates)
 
 - const [pathToResourceId] = useState<Map<string, string>>(new Map())
-    Important -> this is build as the folder structure unfolds and it provides a map of the path as key to resoureId so that we can have quick O(1) lookuptime for ids and not have to refeth that data around the applications 
+    Important -> this is built as the folder structure unfolds and it provides a map of the path as key to resourceId so that we can have quick O(1) lookup time for ids and not have to refetch that data around the applications
 
 - const [pendingPaths, setPendingPaths] = useState<Set<string>>(new Set())
-    - Pending paths is what is used for optimistic updates. While we are creating a new KB we are keeping track of the pending file seperatley 
+    - Pending paths is what is used for optimistic updates. While we are creating a new KB we are keeping track of the pending file separately
 
 - const [isRebuilding, setIsRebuilding] = useState(false)
     - Boolean meant to keep track of the state of the new kb so that we can begin polling and feed the real data
 
 - const editMode = useEditMode()
-    - useEditMode() keeps track of a few thigs. the selected items in the directory as well as the handling logic to select or deselect the folder/file
+    - useEditMode() keeps track of a few things. The selected items in the directory as well as the handling logic to select or deselect the folder/file
 
 
 
 
 
-recursive folder structure (tree node) general login (for data) 
+recursive folder structure (tree node) general logic (for data) 
 
 1) the tree nodes prefetch their data 
 
@@ -70,7 +70,7 @@ the tree node has 2 main useEffect hooks
 
 1) the first handles auto selecting the files when in edit mode that were previously indexed 
 
-2) deals with cleaning the file and ansestors in the pedning paths so that we can allow for the natural polled state of the files to come through 
+2) deals with cleaning the file and ancestors in the pending paths so that we can allow for the natural polled state of the files to come through 
 
 
 
