@@ -29,26 +29,52 @@ export function useEditMode() {
 
   /**
    * Toggle folder - checks/unchecks all descendants
+   * Handles parent explosion and auto-consolidation (same as toggleFile)
    */
-  const toggleFolder = (folderPath: string) => {
+  const toggleFolder = (folderPath: string, parentPath: string, allSiblingPaths: string[]) => {
     setSelectedPaths(prev => {
       const next = new Set(prev)
 
-      if (next.has(folderPath)) {
-        // Uncheck folder and all descendants
-        next.delete(folderPath)
-        for (const path of next) {
+      if (isSelected(folderPath)) {
+        // Unchecking folder
+        if (next.has(parentPath)) {
+          // Parent is selected - explode to siblings
+          next.delete(parentPath)
+          allSiblingPaths.forEach(siblingPath => {
+            if (siblingPath !== folderPath) {
+              next.add(siblingPath)
+            }
+          })
+        } else {
+          // Folder was individually selected
+          next.delete(folderPath)
+        }
+
+        // Remove all descendants
+        for (const path of Array.from(next)) {
           if (path.startsWith(folderPath + '/')) {
             next.delete(path)
           }
         }
       } else {
-        // Check folder, remove redundant children
+        // Checking folder
         next.add(folderPath)
-        for (const path of next) {
+
+        // Remove redundant children
+        for (const path of Array.from(next)) {
           if (path.startsWith(folderPath + '/')) {
             next.delete(path)
           }
+        }
+
+        // Check if all siblings now selected - consolidate to parent
+        const allSiblingsSelected = allSiblingPaths.every(siblingPath =>
+          next.has(siblingPath) || siblingPath === folderPath
+        )
+
+        if (allSiblingsSelected) {
+          next.add(parentPath)
+          allSiblingPaths.forEach(path => next.delete(path))
         }
       }
       return next

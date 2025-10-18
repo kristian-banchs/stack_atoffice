@@ -1,6 +1,7 @@
 'use client'
 
-import { FileText, Globe, Type, Box } from 'lucide-react'
+import { FileText, Globe, Type, Box, LogOut } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const integrationCategories = [
   { icon: FileText, label: 'Files', count: 4, id: 'files' },
@@ -17,9 +18,10 @@ const integrationCategories = [
 interface SidebarProps {
   selectedIntegration: string | null
   onSelect: (id: string) => void
+  onLogout?: () => void
 }
 
-export function Sidebar({ selectedIntegration, onSelect }: SidebarProps) {
+export function Sidebar({ selectedIntegration, onSelect, onLogout }: SidebarProps) {
   return (
     <aside className="w-60 bg-gray-50 border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
@@ -46,6 +48,19 @@ export function Sidebar({ selectedIntegration, onSelect }: SidebarProps) {
           ))}
         </div>
       </nav>
+      {onLogout && (
+        <div className="p-3 border-t border-gray-200">
+          <Button
+            onClick={onLogout}
+            variant="outline"
+            size="sm"
+            className="w-full justify-start"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
+        </div>
+      )}
     </aside>
   )
 }

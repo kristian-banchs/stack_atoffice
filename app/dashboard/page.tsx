@@ -43,7 +43,11 @@ export default function DashboardPage() {
   }
 
   const isLoading = connectionLoading || kbLoading
-  
+
+  const handleLogout = () => {
+    auth.logout()
+    router.push('/')
+  }
 
 //--------------------------- return  ----------------------------
   return (
@@ -51,6 +55,7 @@ export default function DashboardPage() {
       <Sidebar
         selectedIntegration={selectedIntegration}
         onSelect={setSelectedIntegration}
+        onLogout={handleLogout}
       />
       <main className="flex-1 overflow-auto">
         {selectedIntegration === 'google-drive' ? (

@@ -138,10 +138,8 @@ export function TreeNode({
       return
     }
 
-    // Get all file paths in this folder (for sibling checking)
-    const allFilePaths = merged
-      .filter(item => item.inode_type === 'file')
-      .map(item => `/${item.inode_path.path}`)
+    // Get all sibling paths (files + folders) for consolidation logic
+    const allSiblingPaths = merged.map(item => `/${item.inode_path.path}`)
 
     // Auto-select any items in this folder that are indexed
     merged.forEach(item => {
@@ -149,9 +147,9 @@ export function TreeNode({
         const itemPath = `/${item.inode_path.path}`
         if (!editMode.isSelected(itemPath)) {
           if (item.inode_type === 'directory') {
-            editMode.toggleFolder(itemPath)
+            editMode.toggleFolder(itemPath, path, allSiblingPaths)
           } else {
-            editMode.toggleFile(itemPath, path, allFilePaths)
+            editMode.toggleFile(itemPath, path, allSiblingPaths)
           }
         }
       }
@@ -231,6 +229,9 @@ export function TreeNode({
     return <div className="ml-4 text-sm text-gray-500">Empty folder</div>
   }
 
+  // Compute all sibling paths once (files + folders) for consolidation logic
+  const allSiblingPaths = merged.map(m => `/${m.inode_path.path}`)
+
   return (
     <div className="space-y-1">
       {merged.map(item => {
@@ -257,7 +258,7 @@ export function TreeNode({
                     checked={isChecked}
                     onChange={(e) => {
                       e.stopPropagation()
-                      editMode.toggleFolder(childPath)
+                      editMode.toggleFolder(childPath, path, allSiblingPaths)
                     }}
                     onClick={(e) => e.stopPropagation()}
                     className="cursor-pointer"
@@ -265,7 +266,7 @@ export function TreeNode({
                 ) : (
                   <div className="w-3.5" />
                 )}
-                
+
                 <span>📁</span>
                 <span className="text-sm">{item.inode_path.path}</span>
               </button>
@@ -292,9 +293,6 @@ export function TreeNode({
         } else {
           // inode_path.path is always from root, so just prepend /
           const filePath = `/${item.inode_path.path}`
-          const allSiblingPaths = merged
-            .filter(m => m.inode_type === 'file')
-            .map(m => `/${m.inode_path.path}`)
 
           return (
             <FileItem
